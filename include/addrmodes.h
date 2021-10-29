@@ -3,7 +3,7 @@
 
 #include <em6502.h>
 
-#define ADM_DECL(m) inline u16 adm_##m(struct em6502 *em)
+#define ADM_DECL(m) u16 adm_##m(struct em6502 *em)
 
 ADM_DECL(A);
 ADM_DECL(abs);
