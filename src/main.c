@@ -3,14 +3,9 @@
 #include <string.h>
 #include <stdarg.h>
 
-
 #include <time.h>
 
 #include <em6502.h>
-
-#include <termios.h>
-#include <unistd.h>
-#include <fcntl.h>
 
 struct em6502 *EM;
 
@@ -18,13 +13,12 @@ long long FREQ = 10000000000000L;
 
 int chlast;
 
-int interrupt = 0;
 int echooff   = 1;
 
 void
 noprintf(char *s, ...)
 {
-    if(!echooff)
+    if (!echooff)
     {
         va_list argptr;
         va_start(argptr, s);
@@ -39,33 +33,9 @@ intr()
     echooff = 0;
 }
 
-int
-kbhit()
-{
-    struct termios oldt, newt;
-    int            ch;
-    int            oldf;
 
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
-    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
-
-    ch = getchar();
-
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    fcntl(STDIN_FILENO, F_SETFL, oldf);
-
-    if (ch != EOF)
-    {
-        return ch;
-    }
-
-    return 0;
-}
-
+// MAIN FUNCTION
+// generally not used as this is intended as a library
 int
 main(int argc, char **argv)
 {
@@ -99,75 +69,22 @@ main(int argc, char **argv)
 
     // INIT SETTINGS
 
-    // EM->cpu->PC = 0x0400;
-    // EM->cpu->SP = 0x00;
+    EM->cpu->PC = 0x0400;
+    EM->cpu->SP = 0x00;
 
-    EM->cpu->PC = 0x3364;
-    EM->cpu->SP = 0xFF;
-    EM->cpu->A  = 0x29;
-    EM->cpu->X  = 0x0E;
-    EM->cpu->Y  = 0xFF;
+    // EM->cpu->PC = 0x3364;
+    // EM->cpu->SP = 0xFF;
+    // EM->cpu->A  = 0x29;
+    // EM->cpu->X  = 0x0E;
+    // EM->cpu->Y  = 0xFF;  OLD DEBUG STUFF
 
-    EM->cpu->flags = FLAG_V | FLAG_C;
+    // EM->cpu->flags = FLAG_V | FLAG_C;
 
-    EM->mem[0x0200] = 0x29; // test case
+    // EM->mem[0x0200] = 0x29; // test case
 
     while (1)
     {
         long long nspercycle = billion / FREQ;
-
-        int k = kbhit();
-        if (k == ('d' & 037))
-        {
-            interrupt = !(interrupt);
-            noprintf("SIGINT\n");
-        }
-
-        if (k == 'w')
-        {
-            FREQ *= 2;
-            if (FREQ < 1)
-            {
-                FREQ = 1;
-            }
-
-            noprintf("FREQ=%lliHz\n", FREQ);
-        }
-
-        if (k == 's')
-        {
-            FREQ /= 2;
-            if (FREQ < 1)
-            {
-                FREQ = 1;
-            }
-            noprintf("FREQ=%lliHz\n", FREQ);
-        }
-
-        if (k == 'q')
-        {
-            interrupt = 1;
-            int dd;
-            scanf("%x", &dd);
-            noprintf("MEM=%04X", EM->mem[dd]);
-        }
-
-        if (k == 'r')
-        {
-            if (echooff)
-            {
-                echooff = 0;
-            }
-            else
-            {
-                echooff = 1;
-            }
-        }
-
-        if (interrupt)
-        {
-            continue;
-        }
 
         clock_gettime(CLOCK_REALTIME, &nowt);
 
