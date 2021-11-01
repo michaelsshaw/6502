@@ -27,7 +27,7 @@ typedef uint32_t u32;
 #define SETFLAGC(em, flag, cond)                                               \
     ((cond) ? SETFLAG((em), (flag)) : CLFLAG((em), (flag)))
 
-#define MEM_SIZE 65536 // 64MB in bytes
+#define MEM_SIZE 65536 // 64K in bytes
 
 struct em6502;
 
