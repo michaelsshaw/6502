@@ -1,101 +1,153 @@
 #include <addrmodes.h>
+#include <stdio.h>
 
-#define PC  em->cpu->PC
-#define AC  em->cpu->A
-#define X   em->cpu->X
-#define Y   em->cpu->Y
-#define MEM em->mem
+#define PC        em->cpu->PC
+#define AC        em->cpu->A
+#define X         em->cpu->X
+#define Y         em->cpu->Y
+#define MEM(a)    mem_read(em, a)
+#define MEMSET(a) mem_write(em, a)
+#define MEMS(a)   em->mem[a]; // silent mode shhhh
+#define CYCLE     em->cycles += 1
 
-ADM_DECL(A)
+#define MODE(mode) em->addrmode = mode
+
+ADM_DECL(A) // +0 cycles
 {
-    PC += 1;
+    noprintf("A");
+    MODE(ADDR_ACC);
     return 0x00;
 }
 
-ADM_DECL(abs)
+ADM_DECL(abs) // +2 cycles
 {
-    u8  ll = MEM[PC];
-    u16 hh = MEM[PC + 1];
-
+    u8  ll = MEM(PC);
+    u16 hh = MEM(PC + 1);
+    noprintf("$%02x%02x", hh, ll);
     PC += 2;
+    MODE(ADDR_ABS);
     return (hh << 0x08) | ll;
 }
-ADM_DECL(absX)
+ADM_DECL(absX) // +2* cycles
 {
-    u8  ll = MEM[PC];
-    u16 hh = MEM[PC + 1];
-
+    u8  ll = MEM(PC);
+    u8 hh = MEM(PC + 1);
+    u16 r = ((hh << 0x08) | ll) + X;
+    noprintf("$%02x%02x,X -- (%04x)", hh, ll, r);
     PC += 2;
-    return ((hh << 0x08) | ll) + X;
+    MODE(ADDR_ABX);
+    if (ll + X > 0xFF)
+        CYCLE; // PAGE BOUNDARY CROSS
+    return r;
 }
-ADM_DECL(absY)
+ADM_DECL(absY) // +2* cycles
 {
-    u8  ll = MEM[PC];
-    u16 hh = MEM[PC + 1];
-
+    u8  ll = MEM(PC);
+    u8 hh = MEM(PC + 1);
+    u16 r = ((hh << 0x08) | ll) + Y;
+    noprintf("$%02x%02x,Y -- (%04x)", hh, ll, r);
     PC += 2;
-    return ((hh << 0x08) | ll) + Y;
+    MODE(ADDR_ABY);
+    if (ll + Y > 0xFF)
+        CYCLE; // PAGE BOUNDARY CROSS
+    return r;
 }
-ADM_DECL(imm)
+ADM_DECL(imm) // +0 cycles
 {
+    noprintf("#$%02x", em->mem[PC]);
     PC += 1;
-    return MEM[PC - 1];
+    MODE(ADDR_IMM);
+    return (PC - 1);
 }
 
-ADM_DECL(impl)
+ADM_DECL(impl) // +0 cycles
 {
+    MODE(ADDR_IMP);
     return 0x00;
 }
-ADM_DECL(ind)
+ADM_DECL(ind) // +4 cycles
 {
-    u8  ll = MEM[PC];
-    u8  hh = MEM[PC + 1];
-    u16 r  = (MEM[hh] << 0x08) | MEM[ll];
+    u8 ll = MEM(PC);
+    u8 hh = MEM(PC + 1);
 
+    u16 aa = ((hh << 0x08) | ll);
+    u16 r  = (MEM((aa + 1)) << 0x08) | (MEM(aa));
+    noprintf("($%02x%02x)", hh, ll);
     PC += 2;
+    MODE(ADDR_IND);
     return r;
 }
 
-ADM_DECL(Xind)
+ADM_DECL(Xind) // +2 cycles
 {
-    u8  ll = MEM[PC];
-    u16 r  = (0x00FF) & (MEM[ll] + X);
-
+    u8  ll = MEM(PC);
+    u8 a1 = ll + X + 1;
+    u8 a = ll + X ;
+    
+    u16 r = (MEM(a1) << 0x08) | MEM(a);
+    noprintf("(%02x,X) -- (%02x)", ll, r);
     PC += 1;
+    MODE(ADDR_XIN);
     return r;
 }
 
-ADM_DECL(indY)
+ADM_DECL(indY) // +3* cycles
 {
-    u8  ll = MEM[PC];
-    u16 r  = ((0x00FF) & (MEM[ll])) + Y;
-
+    u8  ll = MEM(PC);
+    u16 r = ((MEM(ll + 1) << 0x08) | MEM(ll)) + Y;
+    noprintf("(%02x),Y -- (%02x)", ll, r);
+    if (ll + Y > 0xFF)
+        CYCLE; // PAGE BOUNDARY CROSS
     PC += 1;
+    MODE(ADDR_INY);
     return r;
 }
 
-ADM_DECL(rel)
+ADM_DECL(rel) // +1 cycle
 {
-    u8 bb = MEM[PC];
+    u8 bb = MEM(PC);
+    noprintf("$%02x", bb);
     PC += 1;
-    return PC + bb - 128;
+    u16 r = PC;
+    MODE(ADDR_REL);
+    if ((bb & 0x80) != 0)
+    {
+        return (r - (((~bb) & 0x00FF) + 1));
+    }
+    else
+    {
+        r += bb;
+    }
+    return r;
 }
 
-ADM_DECL(zpg)
+ADM_DECL(zpg) // +1 cycle
 {
-    u8 bb = MEM[PC];
+    u8 bb = MEM(PC);
+    noprintf("$%02x", bb);
     PC += 1;
+    MODE(ADDR_ZPG);
     return 0x00FF & bb;
 }
-ADM_DECL(zpgX)
+ADM_DECL(zpgX) // +2 cycles
 {
-    u8 bb = MEM[PC];
+    u8 bb = MEM(PC);
+    u16 r = 0x00FF & (bb + X);
+    noprintf("$%02x,X -- (%04x)", bb, r);
+
     PC += 1;
-    return 0x00FF & (bb + X);
+    MODE(ADDR_ZPX);
+    CYCLE; // for incrementing by X
+    return r;
 }
-ADM_DECL(zpgY)
+ADM_DECL(zpgY) // +2 cycles
 {
-    u8 bb = MEM[PC];
+    u8 bb = MEM(PC);
+    u16 r = 0x00FF & (bb + Y);
+    noprintf("$%02x,X -- (%04x)", bb, r);
+
     PC += 1;
-    return 0x00FF & (bb + Y);
+    MODE(ADDR_ZPY);
+    CYCLE; // for incrementing by Y
+    return r;
 }

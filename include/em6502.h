@@ -3,6 +3,15 @@
 
 #include <cpu.h>
 
-extern struct em6502 *EM;
+void
+noprintf(char *s, ...);
+
+struct em6502
+{
+    struct cpu *cpu;
+    u8         *mem;
+    u8          cycles;
+    u8          addrmode;
+};
 
 #endif // EM6502_H_
