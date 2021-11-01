@@ -36,7 +36,7 @@ intr()
 
 // MAIN FUNCTION
 // generally not used as this is intended as a library
-int
+/*int
 main(int argc, char **argv)
 {
 
@@ -102,4 +102,4 @@ main(int argc, char **argv)
     free(EM);
 
     return 0;
-}
+}*/
