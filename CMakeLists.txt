@@ -9,7 +9,7 @@ project(project_6502)
 
 file(GLOB_RECURSE SRCS src/*.c)
 
-add_executable(6502 ${SRCS})
+add_library(6502 SHARED ${SRCS})
 
 target_link_libraries(6502 m)
 if(NOT WIN32)
