@@ -5,9 +5,9 @@
 #include <addrmodes.h>
 #include <assert.h>
 
-#define INS_DECL(name) void inscall_##name(struct em6502 *em, u16 addr)
+#define INS_DECL(name) void inscall_##name(struct cpu *cpu, u16 addr)
 
-typedef void (*inscall)(struct em6502 *em, u16 addr);
+typedef void (*inscall)(struct cpu *cpu, u16 addr);
 
 INS_DECL(adc);
 INS_DECL(and);

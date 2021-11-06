@@ -2,21 +2,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define CPU          em->cpu
+#define CPU          cpu
 #define PC           CPU->PC
 #define A            CPU->A
 #define X            CPU->X
 #define Y            CPU->Y
-#define MEM(a)       mem_read(em, a)
-#define MEMSET(a, v) mem_write(em, a, v)
-#define MEMS(a)      em->mem[a]; // silent mode shhhh
-#define CYCLE        em->cycles += 1
-#define CYCLES       em->cycles
-#define CSET(a)      em->cycles = a;
+#define MEM(a)       cpu_read(CPU, a)
+#define MEMSET(a, v) cpu_write(CPU, a, v)
+#define MEMS(a)      CPU->mem[a]; // silent mode shhhh
+#define CYCLE        CPU->cycles += 1
+#define CYCLES       CPU->cycles
+#define CSET(a)      CPU->cycles = a;
 
 #define DSIGN(c) (d && invert) ? -(c) : +(c);
 
-#define ADM em->addrmode
+#define ADM CPU->addrmode
 
 int invert = 0;
 
@@ -173,9 +173,9 @@ INS_DECL(bpl) //
 INS_DECL(brk) //
 {
     u16 p = PC + 1;
-    cpu_push(em, (p >> 0x08) & 0xFF);
-    cpu_push(em, p & 0xFF);
-    cpu_push(em, CPU->flags | FLAG_B | FLAG_5);
+    cpu_push(CPU, (p >> 0x08) & 0xFF);
+    cpu_push(CPU, p & 0xFF);
+    cpu_push(CPU, CPU->flags | FLAG_B | FLAG_5);
 
     SETFLAG(CPU, FLAG_I);
     u8 ll = MEM(0xFFFE);
@@ -345,8 +345,8 @@ INS_DECL(jmp) //
 
 INS_DECL(jsr) //
 {
-    cpu_push(em, (((PC - 1) >> 0x08) & 0xFF));
-    cpu_push(em, ((PC - 1) & 0xFF));
+    cpu_push(CPU, (((PC - 1) >> 0x08) & 0xFF));
+    cpu_push(CPU, ((PC - 1) & 0xFF));
     PC = addr;
 
     CYCLE;
@@ -420,19 +420,19 @@ INS_DECL(ora) //
 
 INS_DECL(pha) //
 {
-    cpu_push(em, A);
+    cpu_push(CPU, A);
     CYCLE;
 }
 
 INS_DECL(php) //
 {
-    cpu_push(em, (CPU->flags | FLAG_B | FLAG_5));
+    cpu_push(CPU, (CPU->flags | FLAG_B | FLAG_5));
     CYCLE;
 }
 
 INS_DECL(pla) //
 {
-    A = cpu_pop(em);
+    A = cpu_pop(CPU);
 
     SETFLAGC(CPU, FLAG_N, NEG8(A));
     SETFLAGC(CPU, FLAG_Z, A == 0x00);
@@ -443,7 +443,7 @@ INS_DECL(pla) //
 
 INS_DECL(plp) //
 {
-    CPU->flags = (cpu_pop(em) & (~(FLAG_5 | FLAG_B)));
+    CPU->flags = (cpu_pop(CPU) & (~(FLAG_5 | FLAG_B)));
 
     CYCLE;
     CYCLE;
@@ -515,10 +515,10 @@ INS_DECL(ror_a) //
 
 INS_DECL(rti) //
 {
-    CPU->flags = (cpu_pop(em) & (~(FLAG_5 | FLAG_B)));
+    CPU->flags = (cpu_pop(CPU) & (~(FLAG_5 | FLAG_B)));
 
-    u8  l = cpu_pop(em);
-    u16 f = ((u16)(cpu_pop(em)) << 0x08) | l;
+    u8  l = cpu_pop(CPU);
+    u16 f = ((u16)(cpu_pop(CPU)) << 0x08) | l;
 
     PC = f;
 
@@ -528,8 +528,8 @@ INS_DECL(rti) //
 
 INS_DECL(rts) //
 {
-    u8  l = cpu_pop(em);
-    u16 f = ((u16)(cpu_pop(em)) << 0x08) | l;
+    u8  l = cpu_pop(CPU);
+    u16 f = ((u16)(cpu_pop(CPU)) << 0x08) | l;
 
     PC = f + 1;
 
@@ -540,7 +540,7 @@ INS_DECL(rts) //
 INS_DECL(sbc) //
 {
     invert = 1;
-    inscall_adc(em, addr);
+    inscall_adc(CPU, addr);
 }
 
 INS_DECL(sec) //

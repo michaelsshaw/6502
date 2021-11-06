@@ -1,16 +1,19 @@
+#include <cpu.h>
+
 #include <addrmodes.h>
 #include <stdio.h>
 
-#define PC        em->cpu->PC
-#define AC        em->cpu->A
-#define X         em->cpu->X
-#define Y         em->cpu->Y
-#define MEM(a)    mem_read(em, a)
-#define MEMSET(a) mem_write(em, a)
-#define MEMS(a)   em->mem[a]; // silent mode shhhh
-#define CYCLE     em->cycles += 1
+#define CPU cpu
+#define PC        CPU->PC
+#define AC        CPU->A
+#define X         CPU->X
+#define Y         CPU->Y
+#define MEM(a)    cpu_read(cpu, a)
+#define MEMSET(a) cpu_write(cpu, a)
+#define MEMS(a)   CPU->mem[a]; // silent mode shhhh
+#define CYCLE     CPU->cycles += 1
 
-#define MODE(mode) em->addrmode = mode
+#define MODE(mode) CPU->addrmode = mode
 
 ADM_DECL(A) // +0 cycles
 {
@@ -54,7 +57,7 @@ ADM_DECL(absY) // +2* cycles
 }
 ADM_DECL(imm) // +0 cycles
 {
-    noprintf("#$%02x", em->mem[PC]);
+    noprintf("#$%02x", CPU->mem[PC]);
     PC += 1;
     MODE(ADDR_IMM);
     return (PC - 1);

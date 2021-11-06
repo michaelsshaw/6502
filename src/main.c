@@ -6,6 +6,7 @@
 #include <time.h>
 
 #include <em6502.h>
+#include <cpu.h>
 
 struct em6502 *EM;
 
@@ -13,7 +14,7 @@ long long FREQ = 10000000000000L;
 
 int chlast;
 
-int echooff   = 1;
+int echooff   =1;
 
 void
 noprintf(char *s, ...)
@@ -36,7 +37,7 @@ intr()
 
 // MAIN FUNCTION
 // generally not used as this is intended as a library
-/*int
+int
 main(int argc, char **argv)
 {
 
@@ -45,22 +46,30 @@ main(int argc, char **argv)
         noprintf("Usage: 6502 filename\n");
         return 1;
     }
+    printf("here!\n");
 
     EM      = malloc(sizeof(struct em6502));
     EM->cpu = malloc(sizeof(struct cpu));
-    EM->mem = malloc(MEM_SIZE);
+    EM->cpu->mem = malloc(MEM_SIZE);
 
-    memset(EM->cpu, 0, sizeof(struct cpu));
-    memset(EM->mem, 0, MEM_SIZE);
+    cpu_set_memcallback(EM->cpu, cpu_default_callback);
+    printf("here!\n");
 
+        printf("%d!\n", EM->cpu->mem[0]);
+
+    memset(EM->cpu->mem, 0, MEM_SIZE);
+    printf("here!\n");
     FILE *file = fopen(argv[1], "rb");
     if (file == NULL)
     {
         noprintf("File open failed\n");
         return 1;
     }
-    fread(EM->mem, MEM_SIZE, 1, file);
+        printf("here!\n");
+
+    fread(EM->cpu->mem, MEM_SIZE, 1, file);
     fclose(file);
+printf("post file\n");
 
     struct timespec nowt;
     long long       last    = 0;
@@ -93,13 +102,13 @@ main(int argc, char **argv)
         // if (now - last > nspercycle)
         {
             last = now;
-            cpu_clock(EM);
+            cpu_clock(EM->cpu);
         }
     }
 
-    free(EM->mem);
+    free(EM->cpu->mem);
     free(EM->cpu);
     free(EM);
 
     return 0;
-}*/
+}

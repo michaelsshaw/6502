@@ -37,21 +37,47 @@ struct cpu
     u8  SP;      // stack pointer
     u16 PC;      // program counter
     u8  flags;   // C, Z, (  ), I, D, B, V, N flags;
+
+    u8 *mem;
+    u8  cycles;
+    u8  addrmode;
+
+    void *fw;
+    void *callback;
 };
+typedef u8 *(*cpucallback)(struct cpu *cpu, u16);
+
+u8 *
+cpu_default_callback(struct cpu *cpu, u16 addr);
 
 void
-cpu_push(struct em6502 *em, u8 val);
+cpu_push(struct cpu *cpu, u8 val);
 
 u8
-cpu_pop(struct em6502 *em);
+cpu_pop(struct cpu *cpu);
 
 u8
-mem_read(struct em6502 *em, u16 addr);
+cpu_read(struct cpu *cpu, u16 addr);
 
 void
-mem_write(struct em6502 *em, u16 addr, u8 val);
+cpu_write(struct cpu *cpu, u16 addr, u8 val);
 
 void
-cpu_clock(struct em6502 *em);
+cpu_clock(struct cpu *cpu);
+
+void
+cpu_set_memcallback(struct cpu *cpu, void *func);
+
+void
+cpu_nmi(struct cpu *cpu);
+
+void
+cpu_irq(struct cpu *cpu);
+
+void
+cpu_rti(struct cpu *cpu);
+
+void
+cpu_reset(struct cpu *cpu);
 
 #endif // CPU_H_
