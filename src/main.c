@@ -1,3 +1,27 @@
+/*
+ * MIT License
+ *
+ * Copyright 2021 Michael Shaw
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,12 +38,12 @@ long long FREQ = 10000000000000L;
 
 int chlast;
 
-int echooff   =1;
+int cpu_echooff = 0;
 
 void
 noprintf(char *s, ...)
 {
-    if (!echooff)
+    if (!cpu_echooff)
     {
         va_list argptr;
         va_start(argptr, s);
@@ -28,16 +52,10 @@ noprintf(char *s, ...)
     }
 }
 
-void
-intr()
-{
-    echooff = 0;
-}
-
 
 // MAIN FUNCTION
 // generally not used as this is intended as a library
-int
+/*int
 main(int argc, char **argv)
 {
 
@@ -52,7 +70,6 @@ main(int argc, char **argv)
     EM->cpu = malloc(sizeof(struct cpu));
     EM->cpu->mem = malloc(MEM_SIZE);
 
-    cpu_set_memcallback(EM->cpu, cpu_default_callback);
     printf("here!\n");
 
         printf("%d!\n", EM->cpu->mem[0]);
@@ -72,9 +89,6 @@ main(int argc, char **argv)
 printf("post file\n");
 
     struct timespec nowt;
-    long long       last    = 0;
-    long long       now     = 0;
-    long long       billion = 1000000000L;
 
     // INIT SETTINGS
 
@@ -93,15 +107,9 @@ printf("post file\n");
 
     while (1)
     {
-        long long nspercycle = billion / FREQ;
-
-        clock_gettime(CLOCK_REALTIME, &nowt);
-
-        now = ((long long)nowt.tv_sec) * billion + ((long long)nowt.tv_nsec);
 
         // if (now - last > nspercycle)
         {
-            last = now;
             cpu_clock(EM->cpu);
         }
     }
@@ -111,4 +119,4 @@ printf("post file\n");
     free(EM);
 
     return 0;
-}
+}*/

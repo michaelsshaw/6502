@@ -25,7 +25,6 @@ INS_DECL(adc) //
 
     u8 m = MEM(addr);
 
-    noprintf("-- (%02x + %02x)", A, m);
     if (invert)
     {
         invert = 0;
@@ -65,6 +64,9 @@ INS_DECL(asl) //
 
     MEMSET(addr, m);
 
+    if (ADM == ADDR_ABX)
+        CSET(7);
+
     SETFLAGC(CPU, FLAG_Z, m == 0);
     SETFLAGC(CPU, FLAG_N, NEG8(m));
 }
@@ -84,9 +86,9 @@ INS_DECL(bcc) //
 {
     if (!GETFLAG(CPU, FLAG_C))
     {
-        if (((PC + addr) & 0xFF00) != (PC & 0xFF00))
-            CYCLE; // PAGE CROSS
         CYCLE;
+        if (((addr)&0xFF00) != (PC & 0xFF00))
+            CYCLE; // PAGE CROSS
         PC = addr;
     }
 }
@@ -95,9 +97,9 @@ INS_DECL(bcs) //
 {
     if (GETFLAG(CPU, FLAG_C))
     {
-        if (((PC + addr) & 0xFF00) != (PC & 0xFF00))
-            CYCLE; // PAGE CROSS
         CYCLE;
+        if (((addr)&0xFF00) != (PC & 0xFF00))
+            CYCLE; // PAGE CROSS
         PC = (addr);
     }
 }
@@ -106,9 +108,9 @@ INS_DECL(beq) //
 {
     if (GETFLAG(CPU, FLAG_Z))
     {
-        if (((PC + addr) & 0xFF00) != (PC & 0xFF00))
-            CYCLE; // PAGE CROSS
         CYCLE;
+        if (((addr)&0xFF00) != (PC & 0xFF00))
+            CYCLE; // PAGE CROSS
 
         PC = (addr);
     }
@@ -130,9 +132,9 @@ INS_DECL(bmi) //
 {
     if (GETFLAG(CPU, FLAG_N))
     {
-        if (((PC + addr) & 0xFF00) != (PC & 0xFF00))
-            CYCLE; // PAGE CROSS
         CYCLE;
+        if (((addr)&0xFF00) != (PC & 0xFF00))
+            CYCLE; // PAGE CROSS
 
         PC = (addr);
     }
@@ -145,9 +147,9 @@ INS_DECL(bne) //
 {
     if (!GETFLAG(CPU, FLAG_Z))
     {
-        if (((PC + addr) & 0xFF00) != (PC & 0xFF00))
-            CYCLE; // PAGE CROSS
         CYCLE;
+        if (((addr)&0xFF00) != (PC & 0xFF00))
+            CYCLE; // PAGE CROSS
 
         if ((PC - 2) == addr)
         {
@@ -162,9 +164,9 @@ INS_DECL(bpl) //
 {
     if (!GETFLAG(CPU, FLAG_N))
     {
-        if (((PC + addr) & 0xFF00) != (PC & 0xFF00))
-            CYCLE; // PAGE CROSS
         CYCLE;
+        if (((addr)&0xFF00) != (PC & 0xFF00))
+            CYCLE; // PAGE CROSS
 
         PC = (addr);
     }
@@ -181,6 +183,8 @@ INS_DECL(brk) //
     u8 ll = MEM(0xFFFE);
     u8 hh = MEM(0xFFFF);
 
+    CYCLE;
+
     PC = (hh << 0x08) | ll;
 }
 
@@ -188,9 +192,9 @@ INS_DECL(bvc) //
 {
     if (!GETFLAG(CPU, FLAG_V))
     {
-        if (((PC + addr) & 0xFF00) != (PC & 0xFF00))
-            CYCLE; // PAGE CROSS
         CYCLE;
+        if (((addr)&0xFF00) != (PC & 0xFF00))
+            CYCLE; // PAGE CROSS
 
         PC = (addr);
     }
@@ -200,9 +204,9 @@ INS_DECL(bvs) //
 {
     if (GETFLAG(CPU, FLAG_V))
     {
-        if (((PC + addr) & 0xFF00) != (PC & 0xFF00))
-            CYCLE; // PAGE CROSS
         CYCLE;
+        if (((addr)&0xFF00) != (PC & 0xFF00))
+            CYCLE; // PAGE CROSS
 
         PC = (addr);
     }
@@ -231,12 +235,11 @@ INS_DECL(clv) //
     CLFLAG(CPU, FLAG_V);
     CYCLE;
 }
-#include <stdio.h>
 INS_DECL(cmp) //
 {
     u8 m = MEM(addr);
     u8 a = A - m;
-    noprintf(" --- (EXP: %02x, VAL: %02x)", m, A);
+    // noprintf(" --- (EXP: %02x, VAL: %02x)", m, A);
     SETFLAGC(CPU, FLAG_N, NEG8(a));
     SETFLAGC(CPU, FLAG_Z, A == m);
     SETFLAGC(CPU, FLAG_C, A >= m);
@@ -350,7 +353,6 @@ INS_DECL(jsr) //
     PC = addr;
 
     CYCLE;
-    CYCLE;
 }
 
 INS_DECL(lda) //
@@ -390,6 +392,9 @@ INS_DECL(lsr) //
     CLFLAG(CPU, FLAG_N);
 
     MEMSET(addr, m);
+
+    if (ADM == ADDR_ABX)
+        CSET(7);
 }
 
 INS_DECL(lsr_a) //
@@ -405,7 +410,6 @@ INS_DECL(lsr_a) //
 
 INS_DECL(nop) //
 {
-    CYCLE;
     CYCLE;
 }
 
@@ -451,8 +455,15 @@ INS_DECL(plp) //
 
 INS_DECL(rol) //
 {
-    u8  m   = MEM(addr);
-    int neg = NEG8(A);
+    u8 m = MEM(addr);
+    // I'm gonna keep this line commented because this
+    // tiny issue, literally a single letter, caused a very confusing bug where
+    // many tiles in Super Mario Bros would end up green, not their correct
+    // color
+    //
+    // Solution found at: https://forums.nesdev.org/viewtopic.php?p=163890#p163890
+    //    int neg = NEG8(A);
+    int neg = NEG8(m);
 
     m <<= 0x01;
     m |= GETFLAG(CPU, FLAG_C);
@@ -533,6 +544,7 @@ INS_DECL(rts) //
 
     PC = f + 1;
 
+    CYCLE;
     CYCLE;
     CYCLE;
 }
