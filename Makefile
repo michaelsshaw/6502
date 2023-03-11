@@ -1,6 +1,6 @@
 CFLAGS := -O2 -Wall -Iinclude
 
-SRC := $(wildcard src/*.c)
+SRC := $(wildcard *.c)
 OBJ := $(SRC:.c=.o)
 OUT := lib6502.a
 
