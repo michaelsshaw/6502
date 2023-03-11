@@ -18,7 +18,6 @@
 
 ADM_DECL(A) // +0 cycles
 {
-    // noprintf("A");
     MODE(ADDR_ACC);
     return 0x00;
 }
@@ -27,7 +26,6 @@ ADM_DECL(abs) // +2 cycles
 {
     u8  ll = MEM(PC);
     u16 hh = MEM(PC + 1);
-    // noprintf("$%02x%02x", hh, ll);
     PC += 2;
     MODE(ADDR_ABS);
     return (hh << 0x08) | ll;
@@ -37,7 +35,6 @@ ADM_DECL(absX) // +2* cycles
     u8  ll = MEM(PC);
     u8  hh = MEM(PC + 1);
     u16 r  = ((hh << 0x08) | ll) + X;
-    // noprintf("$%02x%02x,X -- (%04x)", hh, ll, r);
     PC += 2;
     MODE(ADDR_ABX);
     if (ll + X > 0xFF)
@@ -49,7 +46,6 @@ ADM_DECL(absY) // +2* cycles
     u8  ll = MEM(PC);
     u8  hh = MEM(PC + 1);
     u16 r  = ((hh << 0x08) | ll) + Y;
-    // noprintf("$%02x%02x,Y -- (%04x)", hh, ll, r);
     PC += 2;
     MODE(ADDR_ABY);
     if (ll + Y > 0xFF)
@@ -58,7 +54,6 @@ ADM_DECL(absY) // +2* cycles
 }
 ADM_DECL(imm) // +0 cycles
 {
-    // noprintf("#$%02x", MEM(PC));
     PC += 1;
     MODE(ADDR_IMM);
     return (PC - 1);
@@ -84,7 +79,6 @@ ADM_DECL(ind) // +4 cycles
     {
         r = (MEM((aa + 1)) << 0x08) | (MEM(aa));
     }
-    // noprintf("($%02x%02x)", hh, ll);
     PC += 2;
     MODE(ADDR_IND);
     return r;
@@ -98,7 +92,6 @@ ADM_DECL(Xind) // +2 cycles
 
     u16 r = (MEM(a1) << 0x08) | MEM(a);
     CYCLE;
-    // noprintf("(%02x,X) -- (%02x)", ll, r);
     PC += 1;
     MODE(ADDR_XIN);
     return r;
@@ -114,7 +107,6 @@ ADM_DECL(indY) // +3* cycles
     u16 r = (hi << 8) | lo;
     r += Y;
 
-    // noprintf("(%02x),Y -- (%02x)", ll, r);
     if (lo + Y > 0xFF)
 
         CYCLE; // PAGE BOUNDARY CROSS
@@ -126,7 +118,6 @@ ADM_DECL(indY) // +3* cycles
 ADM_DECL(rel) // +1 cycle
 {
     u8 bb = MEM(PC);
-    // noprintf("$%02x", ((signed)bb) - 128);
     PC += 1;
     u16 r = PC;
     MODE(ADDR_REL);
@@ -144,7 +135,6 @@ ADM_DECL(rel) // +1 cycle
 ADM_DECL(zpg) // +1 cycle
 {
     u8 bb = MEM(PC);
-    // noprintf("$%02x", bb);
     PC += 1;
     MODE(ADDR_ZPG);
     return 0x00FF & bb;
@@ -153,7 +143,6 @@ ADM_DECL(zpgX) // +2 cycles
 {
     u8  bb = MEM(PC);
     u16 r  = 0x00FF & (bb + X);
-    // noprintf("$%02x,X -- (%04x)", bb, r);
 
     PC += 1;
     MODE(ADDR_ZPX);
@@ -164,7 +153,6 @@ ADM_DECL(zpgY) // +2 cycles
 {
     u8  bb = MEM(PC);
     u16 r  = 0x00FF & (bb + Y);
-    // noprintf("$%02x,X -- (%04x)", bb, r);
 
     PC += 1;
     MODE(ADDR_ZPY);
