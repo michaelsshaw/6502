@@ -34,7 +34,7 @@
 
 // pro tip: use regex
 
-void *codes[] = { OPC(brk, impl),
+static void *codes[] = { OPC(brk, impl),
                   OPC(ora, Xind),
                   INV,
                   INV,
@@ -293,7 +293,7 @@ void *codes[] = { OPC(brk, impl),
 
 };
 
-char *debug_codes[] = {
+static char *debug_codes[] = {
     "BRK",  "ORA",  "NULL", "NULL", "NULL", "ORA",  "ASL",  "NULL", "PHP",
     "ORA",  "ASL",  "NULL", "NULL", "ORA",  "ASL",  "NULL", "BPL",  "ORA",
     "NULL", "NULL", "NULL", "ORA",  "ASL",  "NULL", "CLC",  "ORA",  "NULL",
