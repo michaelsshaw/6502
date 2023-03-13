@@ -5,7 +5,7 @@ OBJ := $(SRC:.c=.o)
 OUT := lib6502.a
 
 %.o: %.c
-	$(CC) -c $< $(CFLAGS) -o $@
+	@$(CC) -c $< $(CFLAGS) -o $@
 	@echo "  CC     $@"
 
 $(OUT): $(OBJ)
